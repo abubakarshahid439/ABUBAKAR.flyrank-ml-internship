@@ -1,1 +1,1945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <title>Search Refresh Opportunity Scoring | FlyRank Capstone</title>
+
+    <meta name="description"
+          content="A machine learning based content opportunity scoring system for prioritizing search refresh opportunities using FlyRank search and engagement data.">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Inter, Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+            background: #f7f8fa;
+            color: #17202a;
+        }
+
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #111827, #1f2937);
+            color: white;
+            padding: 90px 20px;
+        }
+
+        .hero-container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 7px 14px;
+            border-radius: 999px;
+            font-size: 14px;
+            margin-bottom: 22px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            line-height: 1.15;
+            max-width: 900px;
+            margin-bottom: 24px;
+        }
+
+        .hero p {
+            font-size: 19px;
+            color: #d1d5db;
+            max-width: 850px;
+        }
+
+        .author {
+            margin-top: 28px;
+            color: #9ca3af;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .nav-container {
+            max-width: 1100px;
+            margin: auto;
+            display: flex;
+            gap: 22px;
+            padding: 14px 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        nav a {
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: auto;
+            padding: 55px 20px;
+        }
+
+        section {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 42px;
+            margin-bottom: 28px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+        }
+
+        section h2 {
+            font-size: 30px;
+            margin-bottom: 22px;
+            color: #111827;
+        }
+
+        section h3 {
+            font-size: 21px;
+            margin: 28px 0 12px;
+            color: #1f2937;
+        }
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        ul {
+            margin: 10px 0 20px 25px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .abstract {
+            font-size: 18px;
+            background: #eff6ff;
+            border-left: 5px solid #2563eb;
+        }
+
+        .question {
+            background: #111827;
+            color: white;
+            padding: 28px;
+            border-radius: 12px;
+            margin: 25px 0;
+            font-size: 21px;
+            font-weight: 600;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 28px 0;
+        }
+
+        .stat {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 22px;
+            border-radius: 12px;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 27px;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .pipeline {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .pipeline-item {
+            padding: 22px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
+        .pipeline-item strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 13px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f3f4f6;
+            font-weight: 700;
+        }
+
+        .callout {
+            padding: 22px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border-left: 4px solid #6b7280;
+            margin: 20px 0;
+        }
+
+        .warning {
+            background: #fff7ed;
+            border-left-color: #ea580c;
+        }
+
+        .recommendation {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 22px;
+            margin: 14px 0;
+            background: #fafafa;
+        }
+
+        .recommendation h3 {
+            margin-top: 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .code-box {
+            background: #111827;
+            color: #e5e7eb;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: Consolas, monospace;
+            font-size: 14px;
+            margin: 20px 0;
+        }
+
+        footer {
+            background: #111827;
+            color: #9ca3af;
+            padding: 45px 20px;
+            text-align: center;
+        }
+
+        footer strong {
+            color: white;
+        }
+
+        @media (max-width: 800px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pipeline {
+                grid-template-columns: 1fr;
+            }
+
+            section {
+                padding: 27px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="hero">
+    <div class="hero-container">
+        <span class="tag">FlyRank ML Internship · Capstone Research</span>
+
+        <h1>
+            A Machine Learning-Based Content Opportunity Scoring System
+            for Search Refresh Prioritization
+        </h1>
+
+        <p>
+            Using historical search visibility and engagement signals to
+            prioritize content pages for review and refresh.
+        </p>
+
+        <p class="author">
+            <strong>Author:</strong> Abubakar Shahid
+        </p>
+    </div>
+</header>
+
+
+<nav>
+    <div class="nav-container">
+        <a href="#abstract">Abstract</a>
+        <a href="#problem">Problem</a>
+        <a href="#data">Data</a>
+        <a href="#methodology">Methodology</a>
+        <a href="#results">Results</a>
+        <a href="#limitations">Limitations</a>
+        <a href="#recommendations">Recommendations</a>
+        <a href="#reproducibility">Reproducibility</a>
+        <a href="#acknowledgments">Acknowledgments</a>
+    </div>
+</nav>
+
+
+<main>
+
+    <!-- ABSTRACT -->
+
+    <section id="abstract" class="abstract">
+
+        <h2>Abstract</h2>
+
+        <p>
+            This research asks whether historical search and engagement signals
+            can be used to identify content pages that should be prioritized
+            for refresh review.
+        </p>
+
+        <p>
+            The analysis uses the FlyRank Search Intelligence warehouse,
+            containing daily content performance observations across a large
+            collection of anonymized pages.
+        </p>
+
+        <p>
+            Search visibility and engagement features are transformed into an
+            opportunity-scoring workflow and evaluated with a machine-learning
+            model alongside a simple baseline.
+        </p>
+
+        <p>
+            The resulting system produces a ranked list of content opportunities
+            together with signal-based reasons that can support editorial
+            prioritization.
+        </p>
+
+        <p>
+            The result should be interpreted as a decision-support and ranking
+            system based on observed historical signals, rather than evidence
+            that refreshing a page will causally improve Google rankings,
+            clicks, or traffic.
+        </p>
+
+    </section>
+
+
+    <!-- PROBLEM -->
+
+    <section id="problem">
+
+        <h2>1. Introduction / Problem Statement</h2>
+
+        <p>
+            Content teams often have many pages that could potentially be
+            improved, but limited time to review every page. The practical
+            decision is therefore not simply whether a page performs well or
+            poorly, but which pages deserve attention first.
+        </p>
+
+        <p>
+            This capstone investigates whether historical search visibility and
+            engagement signals can be combined into a repeatable content
+            opportunity scoring workflow.
+        </p>
+
+        <div class="question">
+            Research Question:
+            Can historical search and engagement signals be used to identify
+            content pages that should be refreshed first?
+        </div>
+
+        <p>
+            The intended outcome is a ranked action list that helps a content
+            team decide where to spend review and refresh effort.
+        </p>
+
+    </section>
+
+
+    <!-- DATA -->
+
+    <section id="data">
+
+        <h2>2. Data</h2>
+
+        <p>
+            The analysis is built on the FlyRank ML Internship Search
+            Intelligence warehouse release. The warehouse provides historical
+            content, search, and engagement information suitable for studying
+            search-performance signals.
+        </p>
+
+        <div class="stats">
+
+            <div class="stat">
+                <span class="stat-number">78.8M+</span>
+                <span class="stat-label">Daily records</span>
+            </div>
+
+            <div class="stat">
+                <span class="stat-number">427K+</span>
+                <span class="stat-label">Unique pages</span>
+            </div>
+
+            <div class="stat">
+                <span class="stat-number">2025–2026</span>
+                <span class="stat-label">Historical window</span>
+            </div>
+
+            <div class="stat">
+                <span class="stat-number">Daily</span>
+                <span class="stat-label">Performance grain</span>
+            </div>
+
+        </div>
+
+        <h3>Data Tables</h3>
+
+        <p>
+            The warehouse includes dimensional and fact-style tables used to
+            construct the analysis. The capstone works primarily with content
+            and daily performance information.
+        </p>
+
+        <ul>
+            <li><strong>dim_clients</strong> — client-level metadata.</li>
+            <li><strong>dim_content</strong> — content/page metadata.</li>
+            <li><strong>fact_daily</strong> — daily performance observations.</li>
+            <li><strong>fact_daily_sample</strong> — sampled daily data.</li>
+            <li><strong>fact_query_90d</strong> — query-level historical information.</li>
+        </ul>
+
+        <h3>Signals Used</h3>
+
+        <table>
+            <tr>
+                <th>Signal group</th>
+                <th>Examples</th>
+                <th>Purpose</th>
+            </tr>
+
+            <tr>
+                <td>Search visibility</td>
+                <td>Impressions, average position</td>
+                <td>Measure search exposure</td>
+            </tr>
+
+            <tr>
+                <td>Search response</td>
+                <td>Clicks</td>
+                <td>Measure search-result capture</td>
+            </tr>
+
+            <tr>
+                <td>Traffic</td>
+                <td>Sessions, pageviews</td>
+                <td>Measure resulting site activity</td>
+            </tr>
+
+            <tr>
+                <td>Engagement</td>
+                <td>Engaged sessions, scroll events</td>
+                <td>Measure interaction quality</td>
+            </tr>
+        </table>
+
+        <div class="callout warning">
+
+            <strong>Public-safety rule:</strong>
+
+            <p>
+                Client names, domains, private queries, credentials, raw
+                exports, and other private identifiers are intentionally excluded
+                from this public paper.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- METHODOLOGY -->
+
+    <section id="methodology">
+
+        <h2>3. Methodology</h2>
+
+        <p>
+            The analysis follows a repeatable pipeline that converts historical
+            search and engagement observations into an opportunity ranking.
+        </p>
+
+        <div class="pipeline">
+
+            <div class="pipeline-item">
+                <strong>01 · Data Preparation</strong>
+                Historical content and performance records are filtered and
+                aggregated for analysis.
+            </div>
+
+            <div class="pipeline-item">
+                <strong>02 · Feature Engineering</strong>
+                Search visibility, clicks, traffic, and engagement signals are
+                transformed into modeling features.
+            </div>
+
+            <div class="pipeline-item">
+                <strong>03 · Opportunity Score</strong>
+                Signals are combined into a score representing relative
+                refresh-review opportunity.
+            </div>
+
+            <div class="pipeline-item">
+                <strong>04 · Baseline</strong>
+                A simple baseline is used as a reference point for model
+                evaluation.
+            </div>
+
+            <div class="pipeline-item">
+                <strong>05 · Random Forest</strong>
+                A Random Forest model is trained to model the opportunity
+                scoring relationship.
+            </div>
+
+            <div class="pipeline-item">
+                <strong>06 · Ranking</strong>
+                Pages are ranked by opportunity score and converted into
+                actionable recommendations.
+            </div>
+
+        </div>
+
+
+        <h3>Feature Design</h3>
+
+        <p>
+            The feature set is based on signals available in the historical
+            warehouse. The central idea is to combine search visibility with
+            user-response and engagement information rather than relying on a
+            single metric.
+        </p>
+
+
+        <h3>Target / Label</h3>
+
+        <p>
+            The modeling target represents the opportunity score constructed
+            within the capstone workflow. Therefore, the machine-learning
+            experiment should be interpreted primarily as a ranking/scoring
+            exercise.
+        </p>
+
+
+        <h3>Model</h3>
+
+        <p>
+            A Random Forest regression model is used to learn the relationship
+            between the engineered signals and the opportunity score.
+        </p>
+
+
+        <h3>Validation</h3>
+
+        <p>
+            The model is evaluated against a baseline on the same evaluation
+            data. The capstone also considers the important distinction between
+            reproducing a constructed score and genuinely predicting future
+            content performance.
+        </p>
+
+        <div class="callout warning">
+
+            <strong>Leakage / target-construction caution</strong>
+
+            <p>
+                Because the target is constructed from signals related to the
+                features used by the model, a very strong model fit should not
+                be interpreted as evidence that the system can predict future
+                SEO outcomes. The strongest interpretation is that the model
+                can reproduce or operationalize the defined opportunity-scoring
+                rule.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- RESULTS -->
+
+    <section id="results">
+
+        <h2>4. Results</h2>
+
+        <p>
+            The completed capstone compares the Random Forest model against a
+            baseline and uses feature importance to understand which signals
+            contribute to the resulting ranking.
+        </p>
+
+        <h3>Model Performance</h3>
+
+        <table>
+
+            <tr>
+                <th>Approach</th>
+                <th>MAE</th>
+                <th>Interpretation</th>
+            </tr>
+
+            <tr>
+                <td>Baseline</td>
+                <td>41.37</td>
+                <td>Reference error level</td>
+            </tr>
+
+            <tr>
+                <td>Random Forest</td>
+                <td>0.223</td>
+                <td>Much lower error when reproducing the constructed score</td>
+            </tr>
+
+        </table>
+
+
+        <h3>R²</h3>
+
+        <p>
+            The completed notebook reports an R² of approximately
+            <strong>0.997</strong> for the Random Forest experiment.
+        </p>
+
+        <div class="callout warning">
+
+            <strong>How to interpret this result</strong>
+
+            <p>
+                The extremely high R² should not be presented as proof of
+                predictive power over future Google performance. The target is
+                derived from the same family of historical signals available to
+                the model. The result therefore indicates that the model is
+                highly effective at reproducing the constructed opportunity
+                score under the experiment, rather than demonstrating causal
+                or future-ranking prediction.
+            </p>
+
+        </div>
+
+
+        <h3>What the Results Support</h3>
+
+        <ul>
+            <li>
+                A repeatable scoring workflow can convert multiple performance
+                signals into a prioritized content list.
+            </li>
+
+            <li>
+                The Random Forest can closely reproduce the defined opportunity
+                score.
+            </li>
+
+            <li>
+                Feature importance can help explain which available signals are
+                most influential within the model.
+            </li>
+
+            <li>
+                The resulting ranking can be used as a starting point for
+                editorial review.
+            </li>
+        </ul>
+
+    </section>
+
+
+    <!-- LIMITATIONS -->
+
+    <section id="limitations">
+
+        <h2>5. Limitations & Honest Framing</h2>
+
+        <p>
+            This work is designed as search-intelligence decision support, not
+            as a causal experiment.
+        </p>
+
+        <h3>Observed</h3>
+
+        <p>
+            The analysis observes historical relationships between search
+            visibility, clicks, traffic, engagement, and the constructed
+            opportunity score.
+        </p>
+
+        <h3>Directional</h3>
+
+        <p>
+            The resulting rankings provide directional evidence about which
+            pages may deserve closer editorial review.
+        </p>
+
+        <h3>Decision Support</h3>
+
+        <p>
+            The system should be used to prioritize human review, not to
+            automatically decide that a page must be rewritten, merged, pruned,
+            or refreshed.
+        </p>
+
+        <h3>What this study does NOT prove</h3>
+
+        <ul>
+            <li>
+                It does not prove Google's ranking algorithm.
+            </li>
+
+            <li>
+                It does not prove that refreshing a page causes ranking
+                improvement.
+            </li>
+
+            <li>
+                It does not establish causal impact on clicks or traffic.
+            </li>
+
+            <li>
+                It does not guarantee future performance for a ranked page.
+            </li>
+        </ul>
+
+    </section>
+
+
+    <!-- RECOMMENDATIONS -->
+
+    <section id="recommendations">
+
+        <h2>6. Ranked Recommendations</h2>
+
+        <p>
+            The scoring engine is intended to produce a prioritized action
+            queue. The exact pages are represented using safe/anonymized
+            identifiers in the public version.
+        </p>
+
+
+        <div class="recommendation">
+
+            <span class="badge">Priority 1</span>
+
+            <h3>Review high-opportunity pages first</h3>
+
+            <p>
+                Start with pages receiving the highest opportunity scores.
+                These pages should receive human review before any refresh
+                decision is made.
+            </p>
+
+            <strong>Recommended action:</strong>
+            Refresh review.
+        </div>
+
+
+        <div class="recommendation">
+
+            <span class="badge">Priority 2</span>
+
+            <h3>Investigate visibility without proportional response</h3>
+
+            <p>
+                Pages with meaningful search exposure but weaker response
+                signals can be reviewed for title, metadata, search-intent
+                alignment, and content presentation.
+            </p>
+
+            <strong>Recommended action:</strong>
+            Metadata and content review.
+        </div>
+
+
+        <div class="recommendation">
+
+            <span class="badge">Priority 3</span>
+
+            <h3>Review engagement opportunities</h3>
+
+            <p>
+                Pages showing weaker engagement signals can be reviewed for
+                content usefulness, structure, readability, and alignment with
+                visitor intent.
+            </p>
+
+            <strong>Recommended action:</strong>
+            Content and UX review.
+        </div>
+
+
+        <div class="recommendation">
+
+            <span class="badge">Priority 4</span>
+
+            <h3>Monitor borderline opportunities</h3>
+
+            <p>
+                Medium-ranked pages should be monitored rather than immediately
+                rewritten. Additional historical evidence can determine whether
+                they move into a higher-priority group.
+            </p>
+
+            <strong>Recommended action:</strong>
+            Monitor.
+        </div>
+
+    </section>
+
+
+    <!-- REPRODUCIBILITY -->
+
+    <section id="reproducibility">
+
+        <h2>7. Reproducibility</h2>
+
+        <p>
+            The technical workflow is available in the GitHub repository.
+            The capstone notebook contains the data preparation, feature
+            engineering, scoring, modeling, validation, and recommendation
+            workflow.
+        </p>
+
+        <p>
+            <strong>Repository:</strong><br>
+            <a href="https://github.com/abubakarshahid439/ABUBAKAR.flyrank-ml-internship"
+               target="_blank">
+                GitHub Repository
+            </a>
+        </p>
+
+        <p>
+            <strong>Capstone Notebook:</strong><br>
+            <a href="https://github.com/abubakarshahid439/ABUBAKAR.flyrank-ml-internship/blob/main/work/notebooks/capstone.ipynb"
+               target="_blank">
+                capstone.ipynb
+            </a>
+        </p>
+
+        <div class="code-box">
+ABUBAKAR.flyrank-ml-internship/
+│
+├── work/
+│   └── notebooks/
+│       └── capstone.ipynb
+│
+├── docs/
+│   └── index.html
+│
+└── submission/
+    └── paper_url.txt
+        </div>
+
+    </section>
+
+
+    <!-- ACKNOWLEDGMENTS -->
+
+    <section id="acknowledgments">
+
+        <h2>8. Acknowledgments & Data Credit</h2>
+
+        <p>
+            This research was completed as part of the FlyRank ML Internship.
+        </p>
+
+        <p>
+            <strong>Built on the FlyRank ML Internship dataset.</strong>
+        </p>
+
+        <p>
+            Data credit:
+            <a href="https://flyrank.ai"
+               target="_blank"
+               rel="noopener noreferrer">
+                FlyRank
+            </a>
+        </p>
+
+    </section>
+
+
+    <!-- FINAL SUMMARY -->
+
+    <section>
+
+        <h2>Conclusion</h2>
+
+        <p>
+            This capstone demonstrates a practical search-intelligence workflow
+            for turning historical search and engagement signals into a ranked
+            content-review queue.
+        </p>
+
+        <p>
+            The Random Forest model closely reproduces the constructed
+            opportunity score, while the ranking layer converts the analysis
+            into actionable content-review priorities.
+        </p>
+
+        <p>
+            The most appropriate use of the system is therefore as a
+            <strong>decision-support tool</strong>: it helps teams decide what
+            to investigate first while leaving the final refresh decision to
+            human editorial judgment.
+        </p>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <p>
+        <strong>FlyRank ML Internship Capstone</strong>
+    </p>
+
+    <p>
+        Search Intelligence · Content Opportunity Scoring
+    </p>
+
+    <p>
+        Built on the FlyRank ML Internship dataset.
+    </p>
+
+</footer>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Search Refresh Opportunity Scoring | FlyRank Capstone</title>
+
+    <meta name="description"
+          content="A machine learning based content opportunity scoring system for prioritizing search refresh opportunities using FlyRank search and engagement data.">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Inter, Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+            background: #f7f8fa;
+            color: #17202a;
+        }
+
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #111827, #1f2937);
+            color: white;
+            padding: 90px 20px;
+        }
+
+        .hero-container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 7px 14px;
+            border-radius: 999px;
+            font-size: 14px;
+            margin-bottom: 22px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            line-height: 1.15;
+            max-width: 900px;
+            margin-bottom: 24px;
+        }
+
+        .hero p {
+            font-size: 19px;
+            color: #d1d5db;
+            max-width: 850px;
+        }
+
+        .author {
+            margin-top: 28px;
+            color: #9ca3af;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .nav-container {
+            max-width: 1100px;
+            margin: auto;
+            display: flex;
+            gap: 22px;
+            padding: 14px 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        nav a {
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: auto;
+            padding: 55px 20px;
+        }
+
+        section {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 42px;
+            margin-bottom: 28px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+        }
+
+        section h2 {
+            font-size: 30px;
+            margin-bottom: 22px;
+            color: #111827;
+        }
+
+        section h3 {
+            font-size: 21px;
+            margin: 28px 0 12px;
+            color: #1f2937;
+        }
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        ul {
+            margin: 10px 0 20px 25px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .abstract {
+            font-size: 18px;
+            background: #eff6ff;
+            border-left: 5px solid #2563eb;
+        }
+
+        .question {
+            background: #111827;
+            color: white;
+            padding: 28px;
+            border-radius: 12px;
+            margin: 25px 0;
+            font-size: 21px;
+            font-weight: 600;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 28px 0;
+        }
+
+        .stat {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 22px;
+            border-radius: 12px;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 27px;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .pipeline {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .pipeline-item {
+            padding: 22px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
+        .pipeline-item strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 13px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f3f4f6;
+            font-weight: 700;
+        }
+
+        .callout {
+            padding: 22px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border-left: 4px solid #6b7280;
+            margin: 20px 0;
+        }
+
+        .warning {
+            background: #fff7ed;
+            border-left-color: #ea580c;
+        }
+
+        .recommendation {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 22px;
+            margin: 14px 0;
+            background: #fafafa;
+        }
+
+        .recommendation h3 {
+            margin-top: 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .code-box {
+            background: #111827;
+            color: #e5e7eb;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: Consolas, monospace;
+            font-size: 14px;
+            margin: 20px 0;
+        }
+
+        footer {
+            background: #111827;
+            color: #9ca3af;
+            padding: 45px 20px;
+            text-align: center;
+        }
+
+        footer strong {
+            color: white;
+        }
+
+        @media (max-width: 800px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pipeline {
+                grid-template-columns: 1fr;
+            }
+
+            section {
+                padding: 27px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="hero">
+    <div class="hero-container">
+        <span class="tag">FlyRank ML Internship · Capstone Research</span>
+
+        <h1>
+            A Machine Learning-Based Content Opportunity Scoring System
+            for Search Refresh Prioritization
+        </h1>
+
+        <p>
+            Using historical search visibility and engagement signals to
+            prioritize content pages for review and refresh.
+        </p>
+
+        <p class="author">
+            <strong>Author:</strong> Abubakar Shahid
+        </p>
+    </div>
+</header>
+
+
+<nav>
+    <div class="nav-container">
+        <a href="#abstract">Abstract</a>
+        <a href="#problem">Problem</a>
+        <a href="#data">Data</a>
+        <a href="#methodology">Methodology</a>
+        <a href="#results">Results</a>
+        <a href="#limitations">Limitations</a>
+        <a href="#recommendations">Recommendations</a>
+        <a href="#reproducibility">Reproducibility</a>
+        <a href="#acknowledgments">Acknowledgments</a>
+    </div>
+</nav>
+
+
+<main>
+
+    <!-- ABSTRACT -->
+
+    <section id="abstract" class="abstract">
+
+        <h2>Abstract</h2>
+
+        <p>
+            This research asks whether historical search and engagement signals
+            can be used to identify content pages that should be prioritized
+            for refresh review.
+        </p>
+
+        <p>
+            The analysis uses the FlyRank Search Intelligence warehouse,
+            containing daily content performance observations across a large
+            collection of anonymized pages.
+        </p>
+
+        <p>
+            Search visibility and engagement features are transformed into an
+            opportunity-scoring workflow and evaluated with a machine-learning
+            model alongside a simple baseline.
+        </p>
+
+        <p>
+            The resulting system produces a ranked list of content opportunities
+            together with signal-based reasons that can support editorial
+            prioritization.
+        </p>
+
+        <p>
+            The result should be interpreted as a decision-support and ranking
+            system based on observed historical signals, rather than evidence
+            that refreshing a page will causally improve Google rankings,
+            clicks, or traffic.
+        </p>
+
+    </section>
+
+
+    <!-- PROBLEM -->
+
+    <section id="problem">
+
+        <h2>1. Introduction / Problem Statement</h2>
+
+        <p>
+            Content teams often have many pages that could potentially be
+            improved, but limited time to review every page. The practical
+            decision is therefore not simply whether a page performs well or
+            poorly, but which pages deserve attention first.
+        </p>
+
+        <p>
+            This capstone investigates whether historical search visibility and
+            engagement signals can be combined into a repeatable content
+            opportunity scoring workflow.
+        </p>
+
+        <div class="question">
+            Research Question:
+            Can historical search and engagement signals be used to identify
+            content pages that should be refreshed first?
+        </div>
+
+        <p>
+            The intended outcome is a ranked action list that helps a content
+            team decide where to spend review and refresh effort.
+        </p>
+
+    </section>
+
+
+    <!-- DATA -->
+
+    <section id="data">
+
+        <h2>2. Data</h2>
+
+        <p>
+            The analysis is built on the FlyRank ML Internship Search
+            Intelligence warehouse release. The warehouse provides historical
+            content, search, and engagement information suitable for studying
+            search-performance signals.
+        </p>
+
+        <div class="stats">
+
+            <div class="stat">
+                <span class="stat-number">78.8M+</span>
+                <span class="stat-label">Daily records</span>
+            </div>
+
+            <div class="stat">
+                <span class="stat-number">427K+</span>
+                <span class="stat-label">Unique pages</span>
+            </div>
+
+            <div class="stat">
+                <span class="stat-number">2025–2026</span>
+                <span class="stat-label">Historical window</span>
+            </div>
+
+            <div class="stat">
+                <span class="stat-number">Daily</span>
+                <span class="stat-label">Performance grain</span>
+            </div>
+
+        </div>
+
+        <h3>Data Tables</h3>
+
+        <p>
+            The warehouse includes dimensional and fact-style tables used to
+            construct the analysis. The capstone works primarily with content
+            and daily performance information.
+        </p>
+
+        <ul>
+            <li><strong>dim_clients</strong> — client-level metadata.</li>
+            <li><strong>dim_content</strong> — content/page metadata.</li>
+            <li><strong>fact_daily</strong> — daily performance observations.</li>
+            <li><strong>fact_daily_sample</strong> — sampled daily data.</li>
+            <li><strong>fact_query_90d</strong> — query-level historical information.</li>
+        </ul>
+
+        <h3>Signals Used</h3>
+
+        <table>
+            <tr>
+                <th>Signal group</th>
+                <th>Examples</th>
+                <th>Purpose</th>
+            </tr>
+
+            <tr>
+                <td>Search visibility</td>
+                <td>Impressions, average position</td>
+                <td>Measure search exposure</td>
+            </tr>
+
+            <tr>
+                <td>Search response</td>
+                <td>Clicks</td>
+                <td>Measure search-result capture</td>
+            </tr>
+
+            <tr>
+                <td>Traffic</td>
+                <td>Sessions, pageviews</td>
+                <td>Measure resulting site activity</td>
+            </tr>
+
+            <tr>
+                <td>Engagement</td>
+                <td>Engaged sessions, scroll events</td>
+                <td>Measure interaction quality</td>
+            </tr>
+        </table>
+
+        <div class="callout warning">
+
+            <strong>Public-safety rule:</strong>
+
+            <p>
+                Client names, domains, private queries, credentials, raw
+                exports, and other private identifiers are intentionally excluded
+                from this public paper.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- METHODOLOGY -->
+
+    <section id="methodology">
+
+        <h2>3. Methodology</h2>
+
+        <p>
+            The analysis follows a repeatable pipeline that converts historical
+            search and engagement observations into an opportunity ranking.
+        </p>
+
+        <div class="pipeline">
+
+            <div class="pipeline-item">
+                <strong>01 · Data Preparation</strong>
+                Historical content and performance records are filtered and
+                aggregated for analysis.
+            </div>
+
+            <div class="pipeline-item">
+                <strong>02 · Feature Engineering</strong>
+                Search visibility, clicks, traffic, and engagement signals are
+                transformed into modeling features.
+            </div>
+
+            <div class="pipeline-item">
+                <strong>03 · Opportunity Score</strong>
+                Signals are combined into a score representing relative
+                refresh-review opportunity.
+            </div>
+
+            <div class="pipeline-item">
+                <strong>04 · Baseline</strong>
+                A simple baseline is used as a reference point for model
+                evaluation.
+            </div>
+
+            <div class="pipeline-item">
+                <strong>05 · Random Forest</strong>
+                A Random Forest model is trained to model the opportunity
+                scoring relationship.
+            </div>
+
+            <div class="pipeline-item">
+                <strong>06 · Ranking</strong>
+                Pages are ranked by opportunity score and converted into
+                actionable recommendations.
+            </div>
+
+        </div>
+
+
+        <h3>Feature Design</h3>
+
+        <p>
+            The feature set is based on signals available in the historical
+            warehouse. The central idea is to combine search visibility with
+            user-response and engagement information rather than relying on a
+            single metric.
+        </p>
+
+
+        <h3>Target / Label</h3>
+
+        <p>
+            The modeling target represents the opportunity score constructed
+            within the capstone workflow. Therefore, the machine-learning
+            experiment should be interpreted primarily as a ranking/scoring
+            exercise.
+        </p>
+
+
+        <h3>Model</h3>
+
+        <p>
+            A Random Forest regression model is used to learn the relationship
+            between the engineered signals and the opportunity score.
+        </p>
+
+
+        <h3>Validation</h3>
+
+        <p>
+            The model is evaluated against a baseline on the same evaluation
+            data. The capstone also considers the important distinction between
+            reproducing a constructed score and genuinely predicting future
+            content performance.
+        </p>
+
+        <div class="callout warning">
+
+            <strong>Leakage / target-construction caution</strong>
+
+            <p>
+                Because the target is constructed from signals related to the
+                features used by the model, a very strong model fit should not
+                be interpreted as evidence that the system can predict future
+                SEO outcomes. The strongest interpretation is that the model
+                can reproduce or operationalize the defined opportunity-scoring
+                rule.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- RESULTS -->
+
+    <section id="results">
+
+        <h2>4. Results</h2>
+
+        <p>
+            The completed capstone compares the Random Forest model against a
+            baseline and uses feature importance to understand which signals
+            contribute to the resulting ranking.
+        </p>
+
+        <h3>Model Performance</h3>
+
+        <table>
+
+            <tr>
+                <th>Approach</th>
+                <th>MAE</th>
+                <th>Interpretation</th>
+            </tr>
+
+            <tr>
+                <td>Baseline</td>
+                <td>41.37</td>
+                <td>Reference error level</td>
+            </tr>
+
+            <tr>
+                <td>Random Forest</td>
+                <td>0.223</td>
+                <td>Much lower error when reproducing the constructed score</td>
+            </tr>
+
+        </table>
+
+
+        <h3>R²</h3>
+
+        <p>
+            The completed notebook reports an R² of approximately
+            <strong>0.997</strong> for the Random Forest experiment.
+        </p>
+
+        <div class="callout warning">
+
+            <strong>How to interpret this result</strong>
+
+            <p>
+                The extremely high R² should not be presented as proof of
+                predictive power over future Google performance. The target is
+                derived from the same family of historical signals available to
+                the model. The result therefore indicates that the model is
+                highly effective at reproducing the constructed opportunity
+                score under the experiment, rather than demonstrating causal
+                or future-ranking prediction.
+            </p>
+
+        </div>
+
+
+        <h3>What the Results Support</h3>
+
+        <ul>
+            <li>
+                A repeatable scoring workflow can convert multiple performance
+                signals into a prioritized content list.
+            </li>
+
+            <li>
+                The Random Forest can closely reproduce the defined opportunity
+                score.
+            </li>
+
+            <li>
+                Feature importance can help explain which available signals are
+                most influential within the model.
+            </li>
+
+            <li>
+                The resulting ranking can be used as a starting point for
+                editorial review.
+            </li>
+        </ul>
+
+    </section>
+
+
+    <!-- LIMITATIONS -->
+
+    <section id="limitations">
+
+        <h2>5. Limitations & Honest Framing</h2>
+
+        <p>
+            This work is designed as search-intelligence decision support, not
+            as a causal experiment.
+        </p>
+
+        <h3>Observed</h3>
+
+        <p>
+            The analysis observes historical relationships between search
+            visibility, clicks, traffic, engagement, and the constructed
+            opportunity score.
+        </p>
+
+        <h3>Directional</h3>
+
+        <p>
+            The resulting rankings provide directional evidence about which
+            pages may deserve closer editorial review.
+        </p>
+
+        <h3>Decision Support</h3>
+
+        <p>
+            The system should be used to prioritize human review, not to
+            automatically decide that a page must be rewritten, merged, pruned,
+            or refreshed.
+        </p>
+
+        <h3>What this study does NOT prove</h3>
+
+        <ul>
+            <li>
+                It does not prove Google's ranking algorithm.
+            </li>
+
+            <li>
+                It does not prove that refreshing a page causes ranking
+                improvement.
+            </li>
+
+            <li>
+                It does not establish causal impact on clicks or traffic.
+            </li>
+
+            <li>
+                It does not guarantee future performance for a ranked page.
+            </li>
+        </ul>
+
+    </section>
+
+
+    <!-- RECOMMENDATIONS -->
+
+    <section id="recommendations">
+
+        <h2>6. Ranked Recommendations</h2>
+
+        <p>
+            The scoring engine is intended to produce a prioritized action
+            queue. The exact pages are represented using safe/anonymized
+            identifiers in the public version.
+        </p>
+
+
+        <div class="recommendation">
+
+            <span class="badge">Priority 1</span>
+
+            <h3>Review high-opportunity pages first</h3>
+
+            <p>
+                Start with pages receiving the highest opportunity scores.
+                These pages should receive human review before any refresh
+                decision is made.
+            </p>
+
+            <strong>Recommended action:</strong>
+            Refresh review.
+        </div>
+
+
+        <div class="recommendation">
+
+            <span class="badge">Priority 2</span>
+
+            <h3>Investigate visibility without proportional response</h3>
+
+            <p>
+                Pages with meaningful search exposure but weaker response
+                signals can be reviewed for title, metadata, search-intent
+                alignment, and content presentation.
+            </p>
+
+            <strong>Recommended action:</strong>
+            Metadata and content review.
+        </div>
+
+
+        <div class="recommendation">
+
+            <span class="badge">Priority 3</span>
+
+            <h3>Review engagement opportunities</h3>
+
+            <p>
+                Pages showing weaker engagement signals can be reviewed for
+                content usefulness, structure, readability, and alignment with
+                visitor intent.
+            </p>
+
+            <strong>Recommended action:</strong>
+            Content and UX review.
+        </div>
+
+
+        <div class="recommendation">
+
+            <span class="badge">Priority 4</span>
+
+            <h3>Monitor borderline opportunities</h3>
+
+            <p>
+                Medium-ranked pages should be monitored rather than immediately
+                rewritten. Additional historical evidence can determine whether
+                they move into a higher-priority group.
+            </p>
+
+            <strong>Recommended action:</strong>
+            Monitor.
+        </div>
+
+    </section>
+
+
+    <!-- REPRODUCIBILITY -->
+
+    <section id="reproducibility">
+
+        <h2>7. Reproducibility</h2>
+
+        <p>
+            The technical workflow is available in the GitHub repository.
+            The capstone notebook contains the data preparation, feature
+            engineering, scoring, modeling, validation, and recommendation
+            workflow.
+        </p>
+
+        <p>
+            <strong>Repository:</strong><br>
+            <a href="https://github.com/abubakarshahid439/ABUBAKAR.flyrank-ml-internship"
+               target="_blank">
+                GitHub Repository
+            </a>
+        </p>
+
+        <p>
+            <strong>Capstone Notebook:</strong><br>
+            <a href="https://github.com/abubakarshahid439/ABUBAKAR.flyrank-ml-internship/blob/main/work/notebooks/capstone.ipynb"
+               target="_blank">
+                capstone.ipynb
+            </a>
+        </p>
+
+        <div class="code-box">
+ABUBAKAR.flyrank-ml-internship/
+│
+├── work/
+│   └── notebooks/
+│       └── capstone.ipynb
+│
+├── docs/
+│   └── index.html
+│
+└── submission/
+    └── paper_url.txt
+        </div>
+
+    </section>
+
+
+    <!-- ACKNOWLEDGMENTS -->
+
+    <section id="acknowledgments">
+
+        <h2>8. Acknowledgments & Data Credit</h2>
+
+        <p>
+            This research was completed as part of the FlyRank ML Internship.
+        </p>
+
+        <p>
+            <strong>Built on the FlyRank ML Internship dataset.</strong>
+        </p>
+
+        <p>
+            Data credit:
+            <a href="https://flyrank.ai"
+               target="_blank"
+               rel="noopener noreferrer">
+                FlyRank
+            </a>
+        </p>
+
+    </section>
+
+
+    <!-- FINAL SUMMARY -->
+
+    <section>
+
+        <h2>Conclusion</h2>
+
+        <p>
+            This capstone demonstrates a practical search-intelligence workflow
+            for turning historical search and engagement signals into a ranked
+            content-review queue.
+        </p>
+
+        <p>
+            The Random Forest model closely reproduces the constructed
+            opportunity score, while the ranking layer converts the analysis
+            into actionable content-review priorities.
+        </p>
+
+        <p>
+            The most appropriate use of the system is therefore as a
+            <strong>decision-support tool</strong>: it helps teams decide what
+            to investigate first while leaving the final refresh decision to
+            human editorial judgment.
+        </p>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <p>
+        <strong>FlyRank ML Internship Capstone</strong>
+    </p>
+
+    <p>
+        Search Intelligence · Content Opportunity Scoring
+    </p>
+
+    <p>
+        Built on the FlyRank ML Internship dataset.
+    </p>
+
+</footer>
+
+</body>
+</html>
